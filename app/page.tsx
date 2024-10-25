@@ -19,12 +19,11 @@ import {
   Activity,
   Users,
   Clock,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
 
-// Mock data for the dashboard
+// Updated mock data to include transfer history
 const mockData = [
   {
     patientId: "P-001",
@@ -32,45 +31,61 @@ const mockData = [
     finalDiagnosis: "Myocardial Infarction",
     accuracy: 85,
     status: "Admitted",
-    department: "Cardiology",
+    transferHistory: [
+      { department: "Emergency", timestamp: "2023-10-25T14:30:00" },
+      { department: "Cardiology", timestamp: "2023-10-25T15:45:00" },
+    ],
   },
   {
-    patientId: "P-001",
+    patientId: "P-002",
     initialDiagnosis: "Shortness of Breath",
     finalDiagnosis: "Pneumonia",
     accuracy: 70,
     status: "Under Observation",
-    department: "Pulmonology",
+    transferHistory: [
+      { department: "Emergency", timestamp: "2023-10-25T16:00:00" },
+      { department: "Pulmonology", timestamp: "2023-10-25T17:30:00" },
+    ],
   },
   {
-    patientId: "P-001",
+    patientId: "P-003",
     initialDiagnosis: "Head Trauma",
     finalDiagnosis: "Concussion",
     accuracy: 95,
     status: "Discharged",
-    department: "Neurology",
+    transferHistory: [
+      { department: "Emergency", timestamp: "2023-10-25T18:15:00" },
+      { department: "Neurology", timestamp: "2023-10-25T19:00:00" },
+      { department: "Discharged", timestamp: "2023-10-26T10:30:00" },
+    ],
   },
   {
-    patientId: "P-001",
+    patientId: "P-004",
     initialDiagnosis: "Abdominal Pain",
     finalDiagnosis: "Appendicitis",
     accuracy: 90,
     status: "Post-Surgery",
-    department: "General Surgery",
+    transferHistory: [
+      { department: "Emergency", timestamp: "2023-10-25T20:00:00" },
+      { department: "General Surgery", timestamp: "2023-10-25T21:30:00" },
+      { department: "Recovery", timestamp: "2023-10-26T01:00:00" },
+    ],
   },
   {
-    patientId: "P-001",
+    patientId: "P-005",
     initialDiagnosis: "Fever and Rash",
     finalDiagnosis: "Measles",
     accuracy: 60,
     status: "Isolated",
-    department: "Infectious Diseases",
+    transferHistory: [
+      { department: "Emergency", timestamp: "2023-10-25T22:45:00" },
+      { department: "Infectious Diseases", timestamp: "2023-10-26T00:15:00" },
+    ],
   },
 ];
 
 export default function ParamedicDashboard() {
   const [timeFrame, setTimeFrame] = useState("Today");
-  // const [searchTerm, setSearchTerm] = useState("");
 
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 90) return "bg-green-500";
@@ -160,18 +175,6 @@ export default function ParamedicDashboard() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Recent Patient Cases</CardTitle>
-            {/* Search field */}
-            {/* <div className="flex items-center">
-              <Label htmlFor="search" className="sr-only">
-                Search Patient
-              </Label>
-              <Input
-                placeholder="Search patient..."
-                id="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div> */}
             <div className="space-x-2">
               {["Today", "This Week", "This Month"].map((tf) => (
                 <Button
@@ -190,50 +193,56 @@ export default function ParamedicDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Patient Name</TableHead>
+                <TableHead>Patient ID</TableHead>
                 <TableHead>Initial Diagnosis</TableHead>
                 <TableHead>Final Diagnosis</TableHead>
                 <TableHead>Accuracy</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Department</TableHead>
+                <TableHead>Department Timeline</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockData
-                // .filter((p) =>
-                //   p.patientId.toLowerCase().includes(searchTerm.toLowerCase())
-                // )
-                .map((patient) => (
-                  <TableRow key={patient.patientId}>
+              {mockData.map((patient) => (
+                <TableRow key={patient.patientId}>
+                  <TableCell className="font-medium">
                     <Link
                       href={`/patients/${patient.patientId}`}
-                      className="text-blue-500"
+                      className="text-blue-500 hover:underline"
                     >
-                      <TableCell className="font-medium">
-                        {patient.patientId}
-                      </TableCell>
+                      {patient.patientId}
                     </Link>
-                    <TableCell>{patient.initialDiagnosis}</TableCell>
-                    <TableCell>{patient.finalDiagnosis}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${getAccuracyColor(
-                            patient.accuracy
-                          )}`}
-                        ></div>
-                        <span>{patient.accuracy}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(patient.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Stethoscope className="h-4 w-4" />
-                        <span>{patient.department}</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  </TableCell>
+                  <TableCell>{patient.initialDiagnosis}</TableCell>
+                  <TableCell>{patient.finalDiagnosis}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className={`w-2 h-2 rounded-full ${getAccuracyColor(
+                          patient.accuracy
+                        )}`}
+                      ></div>
+                      <span>{patient.accuracy}%</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(patient.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {patient.transferHistory.map((transfer, index) => (
+                        <div key={index} className="flex items-center">
+                          {index > 0 && <ArrowRight className="h-4 w-4 mx-1" />}
+                          <Badge
+                            variant="outline"
+                            className="flex items-center space-x-1"
+                          >
+                            <Stethoscope className="h-3 w-3" />
+                            <span>{transfer.department}</span>
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>
