@@ -60,7 +60,7 @@ export default function Component() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full border-black border-2 max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">
           Doctor Diagnostic Form
