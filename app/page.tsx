@@ -1,203 +1,224 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import Tesseract from "tesseract.js";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Stethoscope,
+  AlertTriangle,
+  Activity,
+  Users,
+  Clock,
+} from "lucide-react";
+import Link from "next/link";
 
-export default function Component() {
-  const [formData, setFormData] = useState({
-    nidaId: "",
-    diagnosis: "",
-    actionsTaken: "",
-    medicationGiven: "",
-  });
+// Mock data for the dashboard
+const mockData = [
+  {
+    patientId: "P-001",
+    initialDiagnosis: "Chest Pain",
+    finalDiagnosis: "Myocardial Infarction",
+    accuracy: 85,
+    status: "Admitted",
+    department: "Cardiology",
+  },
+  {
+    patientId: "P-001",
+    initialDiagnosis: "Shortness of Breath",
+    finalDiagnosis: "Pneumonia",
+    accuracy: 70,
+    status: "Under Observation",
+    department: "Pulmonology",
+  },
+  {
+    patientId: "P-001",
+    initialDiagnosis: "Head Trauma",
+    finalDiagnosis: "Concussion",
+    accuracy: 95,
+    status: "Discharged",
+    department: "Neurology",
+  },
+  {
+    patientId: "P-001",
+    initialDiagnosis: "Abdominal Pain",
+    finalDiagnosis: "Appendicitis",
+    accuracy: 90,
+    status: "Post-Surgery",
+    department: "General Surgery",
+  },
+  {
+    patientId: "P-001",
+    initialDiagnosis: "Fever and Rash",
+    finalDiagnosis: "Measles",
+    accuracy: 60,
+    status: "Isolated",
+    department: "Infectious Diseases",
+  },
+];
 
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [detectedText, setDetectedText] = useState("");
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+export default function ParamedicDashboard() {
+  const [timeFrame, setTimeFrame] = useState("Today");
 
-  useEffect(() => {
-    const startCamera = async () => {
-      if (videoRef.current) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" }, // Use the back camera
-          });
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        } catch (err) {
-          console.error("Error accessing camera:", err);
-        }
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
-  const handleInputChange = (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  const getAccuracyColor = (accuracy: number) => {
+    if (accuracy >= 90) return "bg-green-500";
+    if (accuracy >= 70) return "bg-yellow-500";
+    return "bg-red-500";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Patient information submitted successfully!");
-  };
-
-  const handleCapture = (event: any) => {
-    event.preventDefault()
-    if (canvasRef.current && videoRef.current) {
-      const context = canvasRef.current.getContext("2d");
-      if (context) {
-        context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-        const imageData = canvasRef.current.toDataURL("image/png");
-        setImageSrc(imageData);
-      }
-    }
-  };
-
-  const handleRetake = () => {
-    setImageSrc(null);
-    setDetectedText("");
-  };
-
-  const handleDone = async (event: any) => {
-    event.preventDefault()
-    if (imageSrc) {
-      Tesseract.recognize(
-          imageSrc,
-          'eng',
-          {
-            logger: (info) => console.log(info),
-          }
-      ).then(({ data: { text } }) => {
-        setDetectedText(text);
-      }).catch((err) => {
-        console.error("Error during OCR:", err);
-        setDetectedText("Error detecting text.");
-      });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Admitted":
+        return <Badge variant="default">Admitted</Badge>;
+      case "Under Observation":
+        return <Badge variant="secondary">Under Observation</Badge>;
+      case "Discharged":
+        return <Badge variant="outline">Discharged</Badge>;
+      case "Post-Surgery":
+        return <Badge className="bg-blue-500 text-white">Post-Surgery</Badge>;
+      case "Isolated":
+        return <Badge variant="destructive">Isolated</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   return (
-      <div className="h-full flex flex-col items-center">
-        <Card className="w-full max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
-              Paramedic Patient Handover Form
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-3xl font-bold text-center mb-6">
+        Paramedic Performance Dashboard
+      </h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Patients
             </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nidaId">NIDA ID/Patient Id</Label>
-                  <Input
-                      id="nidaId"
-                      name="nidaId"
-                      placeholder="Enter patient's NIDA ID"
-                      value={formData.nidaId}
-                      onChange={handleInputChange}
-                      required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="diagnosis">Initial Diagnosis</Label>
-                <Textarea
-                    id="diagnosis"
-                    name="diagnosis"
-                    placeholder="Enter initial diagnosis"
-                    value={formData.diagnosis}
-                    onChange={handleInputChange}
-                    required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="actionsTaken">Actions Taken</Label>
-                <Textarea
-                    id="actionsTaken"
-                    name="actionsTaken"
-                    placeholder="Describe actions taken"
-                    value={formData.actionsTaken}
-                    onChange={handleInputChange}
-                    required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="medicationGiven">Medication Given</Label>
-                <Textarea
-                    id="medicationGiven"
-                    name="medicationGiven"
-                    placeholder="List any medication given"
-                    value={formData.medicationGiven}
-                    onChange={handleInputChange}
-                />
-              </div>
-
-              {/* Camera Feed Section */}
-              <div className="space-y-2 ">
-                <Label>Camera Feed</Label>
-                <video
-                    ref={videoRef}
-                    className="w-full max-h-48 border rounded"
-                    autoPlay
-                    playsInline
-                ></video>
-                <Button onClick={handleCapture}>Capture</Button>
-                <canvas ref={canvasRef} className="hidden" width={640} height={480}></canvas>
-                {imageSrc && (
-                    <div className="mt-2 flex flex-col items-center">
-                      <img src={imageSrc} alt="Captured" className="w-full max-h-48 object-contain" />
-                      <div className="mt-2 space-x-4">
-                        <Button onClick={handleRetake}>Retake</Button>
-                        <Button onClick={handleDone}>Done</Button>
-                      </div>
-                    </div>
-                )}
-              </div>
-
-              {detectedText && (
-                  <div className="space-y-2">
-                    <Label htmlFor="detectedText">Detected Text</Label>
-                    <Textarea
-                        id="detectedText"
-                        value={detectedText}
-                        readOnly
-                        className="bg-gray-100"
-                    />
-                  </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full">
-                Submit Patient Information
-              </Button>
-            </CardFooter>
-          </form>
+          <CardContent>
+            <div className="text-2xl font-bold">128</div>
+            <p className="text-xs text-muted-foreground">
+              +14% from last month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Avg. Response Time
+            </CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8.5 min</div>
+            <p className="text-xs text-muted-foreground">
+              -2.3% from last month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Avg. Diagnosis Accuracy
+            </CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">87%</div>
+            <Progress value={87} className="h-2" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Critical Cases
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-muted-foreground">+6 from yesterday</p>
+          </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Recent Patient Cases</CardTitle>
+            <div className="space-x-2">
+              {["Today", "This Week", "This Month"].map((tf) => (
+                <Button
+                  key={tf}
+                  variant={timeFrame === tf ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeFrame(tf)}
+                >
+                  {tf}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Patient Name</TableHead>
+                <TableHead>Initial Diagnosis</TableHead>
+                <TableHead>Final Diagnosis</TableHead>
+                <TableHead>Accuracy</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Department</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockData.map((patient) => (
+                <TableRow key={patient.patientId}>
+                  <Link
+                    href={`/patients/${patient.patientId}`}
+                    className="text-blue-500"
+                  >
+                    <TableCell className="font-medium">
+                      {patient.patientId}
+                    </TableCell>
+                  </Link>
+                  <TableCell>{patient.initialDiagnosis}</TableCell>
+                  <TableCell>{patient.finalDiagnosis}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className={`w-2 h-2 rounded-full ${getAccuracyColor(
+                          patient.accuracy
+                        )}`}
+                      ></div>
+                      <span>{patient.accuracy}%</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(patient.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Stethoscope className="h-4 w-4" />
+                      <span>{patient.department}</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
