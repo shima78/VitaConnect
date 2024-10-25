@@ -23,7 +23,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Component() {
   const [formData, setFormData] = useState({
-    patientName: "",
     patientId: "",
     finalDiagnosis: "",
     treatmentPlan: "",
@@ -68,18 +67,7 @@ export default function Component() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="patientName">Patient Name</Label>
-              <Input
-                id="patientName"
-                name="patientName"
-                placeholder="Enter patient's full name"
-                value={formData.patientName}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+          <div className="grid gap-4">
             <div className="space-y-2">
               <Label htmlFor="patientId">Patient ID</Label>
               <Input
